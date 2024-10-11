@@ -2,3 +2,4 @@ fastapi
 uvicorn
 crewai[tools]
 hnswlib
+psycopg2-binary

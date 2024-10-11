@@ -19,26 +19,19 @@ scp -i /Users/vitomargiotta/.ssh/id_rsa -r "/Users/vitomargiotta/DF-Development/
 
 - Build the docker image
 ````
-docker build -t agent_researcher .
-````
-
-- Run the Docker Container
-````
-docker run -d -p 8000:8000 agent_researcher
+docker compose up --build
 ````
 
 - Test the api
 ````
-http://188.245.180.119:8000
+If locally: http://0.0.0.0:8000
+If on VM: http://188.245.180.119:8000
 ````
 
-- 
+- Example POST request to research a company
 ````
+curl -X POST http://0.0.0.0:8000/company_research \
+-H "Content-Type: application/json" \
+-d '{"company_name": "Dealfront"}'
 ````
 
-
-Else, if done with venv, use this:
-- Run the Docker Container
-````
-PYTHONPATH=/root/agent_researcher/src uvicorn agent_researcher.main:app --host 0.0.0.0 --port 8000
-````
