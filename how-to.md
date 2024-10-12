@@ -42,17 +42,20 @@ python drop_all_tables.py
 ssh -i /Users/vitomargiotta/.ssh/id_rsa root@188.245.180.119
 ````
 
+- shut down docker compose if already running
+````
+docker compose down
+````
+
 - copy code into VM, run this in a new terminal (in a new terminal, should not be already SSH into VM)
 ````
 scp -i /Users/vitomargiotta/.ssh/id_rsa -r "/Users/vitomargiotta/DF-Development/prototyping/05_df_agents/df_agents" root@188.245.180.119:/root/
 ````
 
-
-
-- add the .env file and use the content from .env.production
+- make sure the .env file is the production one
 ````
 cd df_agents
-nano .env
+rm -f .env && mv .env.production .env
 ````
 
 
@@ -65,12 +68,13 @@ docker compose up --build
 ````
 cd df_agents
 cd database
-python setup_database.py
+python3 01_check_db_connection.py
+python3 02_create_db_tables.py
 ````
 
 and confirm all is fine
 ````
-python see_content_agents_table.py
+python3 see_content_agents_table.py
 ````
 
 - Test the api

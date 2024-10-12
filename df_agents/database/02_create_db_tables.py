@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS agents (
 create_jobs_table = """
 CREATE TABLE IF NOT EXISTS jobs (
     id SERIAL PRIMARY KEY,
+    agent_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
     account_id INTEGER NOT NULL,
     status VARCHAR(50) NOT NULL,

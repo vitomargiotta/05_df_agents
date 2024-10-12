@@ -19,22 +19,15 @@ import concurrent.futures
 import psycopg2
 from psycopg2 import sql
 
-# DB_NAME = os.getenv('DB_NAME')
-# DB_USER = os.getenv('DB_USER')
-# DB_PASSWORD = os.getenv('DB_PASSWORD')
-# DB_HOST = os.getenv('DB_HOST')
-# DB_PORT = os.getenv('DB_PORT', '5432') 
-DB_URL = os.getenv('DB_URL') 
+load_dotenv()
 
-DB_NAME = 'agents'  # Connect to the default postgres database
-DB_USER = 'postgres'  # Replace with your PostgreSQL username
-DB_PASSWORD = 'Cp9xdHqFgJPqwKNvNGf37Jbw7qr'  # Replace with your PostgreSQL password
-DB_HOST = 'postgres_db'  # Or the hostname of your database server
-DB_PORT = 5432  # Default PostgreSQL port
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST', 'localhost')
+DB_PORT = 5432
 
 # Start app
-
-load_dotenv()
 app = FastAPI()
 
 app.add_middleware(

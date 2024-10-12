@@ -20,10 +20,10 @@ agents = [
 ]
 
 jobs = [
-    (1, 101, 'Not Started', {"summary": "Company research complete"}),
-    (1, 101, 'Completed', {"summary": "Company research complete"}),
-    (1, 101, 'In Progress', {"summary": "Sales forecast is being generated"}),
-    (3, 103, 'Failed', {"summary": "Unable to complete market analysis"})
+    (1, 1, 101, 'Not Started', {"summary": "Company research complete"}),
+    (1, 1, 101, 'Completed', {"summary": "Company research complete"}),
+    (1, 1, 101, 'In Progress', {"summary": "Sales forecast is being generated"}),
+    (1, 3, 103, 'Failed', {"summary": "Unable to complete market analysis"})
 ]
 
 # Function to attempt a database connection
