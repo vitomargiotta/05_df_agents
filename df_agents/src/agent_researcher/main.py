@@ -14,8 +14,27 @@ import uuid
 import asyncio
 import concurrent.futures
 
-load_dotenv()
+# Setup connection to database
 
+import psycopg2
+from psycopg2 import sql
+
+# DB_NAME = os.getenv('DB_NAME')
+# DB_USER = os.getenv('DB_USER')
+# DB_PASSWORD = os.getenv('DB_PASSWORD')
+# DB_HOST = os.getenv('DB_HOST')
+# DB_PORT = os.getenv('DB_PORT', '5432') 
+DB_URL = os.getenv('DB_URL') 
+
+DB_NAME = 'agents'  # Connect to the default postgres database
+DB_USER = 'postgres'  # Replace with your PostgreSQL username
+DB_PASSWORD = 'Cp9xdHqFgJPqwKNvNGf37Jbw7qr'  # Replace with your PostgreSQL password
+DB_HOST = 'postgres_db'  # Or the hostname of your database server
+DB_PORT = 5432  # Default PostgreSQL port
+
+# Start app
+
+load_dotenv()
 app = FastAPI()
 
 app.add_middleware(
@@ -30,6 +49,7 @@ app.add_middleware(
 async def hello():
     return {"message": "Welcome my friend!"}
 
+
 class CompanyResearchRequest(BaseModel):
     company_name: str
 
@@ -41,6 +61,34 @@ STATUS_IN_PROGRESS = "In Progress"
 STATUS_COMPLETED = "Completed"
 STATUS_FAILED = "Failed"
 
+
+@app.get("/agents_count") 
+async def get_agents_count():
+    try:
+        # Connect to the PostgreSQL database
+        try:
+            conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+            # conn = psycopg2.connect(DB_URL)
+        except psycopg2.Error as e:
+            print(f"Error connecting to the database: {e}")
+            return {"error": str(e)}
+        cur = conn.cursor()
+
+        # Query to count the rows in the agents table
+        cur.execute("SELECT COUNT(*) FROM agents;")
+        count = cur.fetchone()[0]
+
+        # Close the connection
+        cur.close()
+        conn.close()
+
+        # Return the count
+        return {"agents_count": count}
+
+    except Exception as e:
+        # Handle any errors that occur
+        return {"error": str(e)}
+    
 
 @app.get("/status/{job_id}")
 async def get_status(job_id: str):

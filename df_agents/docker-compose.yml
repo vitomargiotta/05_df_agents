@@ -8,10 +8,10 @@ services:
     working_dir: /app
     volumes:
       - .:/app  # Mount the current directory to /app in the container
-    command: /bin/sh -c "apt-get update && apt-get install -y build-essential cmake g++ libstdc++6 gcc && pip install --upgrade pip && pip install -r requirements.txt && uvicorn agent_researcher.main:app --host 0.0.0.0 --port 8000"
+    command: /bin/sh -c "apt-get update && apt-get install -y build-essential cmake g++ libstdc++6 gcc && pip install --upgrade pip && pip install -r requirements.txt && uvicorn agent_researcher.main:app --host 0.0.0.0 --port 8000 --reload"
     environment:
       - PYTHONPATH=/app/src  # Set the PYTHONPATH to locate the modules
-      - DATABASE_URL=postgresql://postgres:password@postgres_db:5432/mydatabase  # PostgreSQL connection string
+      - DATABASE_URL=${DB_URL}  # PostgreSQL connection string
     ports:
       - "8000:8000"  # Expose FastAPI on port 8000
     depends_on:
@@ -24,9 +24,9 @@ services:
     image: postgres:14  # Use the official PostgreSQL image
     container_name: postgres_db
     environment:
-      POSTGRES_USER: postgres  # Username for the PostgreSQL database
-      POSTGRES_PASSWORD: password  # Password for the PostgreSQL user
-      POSTGRES_DB: mydatabase  # Name of the default database
+      POSTGRES_USER: ${DB_USER}  # Use environment variable
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use environment variable
+      POSTGRES_DB: ${DB_NAME}  # Use environment variable
     ports:
       - "5432:5432"  # Expose PostgreSQL port 5432 to the host machine
     volumes:

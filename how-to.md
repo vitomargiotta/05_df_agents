@@ -1,25 +1,76 @@
-# How to use Crew AI
+# RUN PROJECT LOCALLY
 
-i have created a nenv python environment using the command "python3.12 -m venv agent_researcher_python_env"
+- Clone the repository
 
-to use it 
-- run the command "source agent_researcher_python_env/bin/activate"
-- from the command line cd into "05_agent_company_researcher" folder
+- Ask Vito for the .env file
 
-to deploy to VM
+- Build the docker image
+````
+docker compose up
+````
+
+- Create database schema and seed initial data
+````
+cd df_agents
+cd database
+python 01_check_db_connection.py
+python 02_create_db_tables.py
+python 03_seed_db.py
+````
+
+and confirm all is fine
+````
+python 04_check_agents_table_content.py
+````
+
+- Test the api
+````
+If locally: http://0.0.0.0:8000
+If on VM: http://188.245.180.119:8000
+````
+
+- If content in db is messed up and you want to clean it up
+````
+python drop_all_tables.py
+````
+
+
+# DEPLOY TO VM
+
 - ssh into the vm 
 ````
 ssh -i /Users/vitomargiotta/.ssh/id_rsa root@188.245.180.119
 ````
 
-- copy code into VM, run this in a new terminal (no need of already be SSH into VM)
+- copy code into VM, run this in a new terminal (in a new terminal, should not be already SSH into VM)
 ````
-scp -i /Users/vitomargiotta/.ssh/id_rsa -r "/Users/vitomargiotta/DF-Development/LF Prototyping/05_agent_company_researcher/agent_researcher" root@188.245.180.119:/root/
+scp -i /Users/vitomargiotta/.ssh/id_rsa -r "/Users/vitomargiotta/DF-Development/prototyping/05_df_agents/df_agents" root@188.245.180.119:/root/
 ````
+
+
+
+- add the .env file and use the content from .env.production
+````
+cd df_agents
+nano .env
+````
+
 
 - Build the docker image
 ````
 docker compose up --build
+````
+
+- Create database schema and seed initial data
+````
+cd df_agents
+cd database
+python setup_database.py
+````
+
+and confirm all is fine
+````
+python see_content_agents_table.py
 ````
 
 - Test the api
