@@ -2,6 +2,7 @@
 import sys
 from agent_researcher.crew import AgentResearcherCrew
 import os
+import json
 
 
 # SETUP THE FastAPI SERVER
@@ -46,6 +47,12 @@ async def hello():
 class CompanyResearchRequest(BaseModel):
     company_name: str
 
+class ReportRequest(BaseModel):
+    user_id: int
+    account_id: int
+    agent_slug: str
+    user_request: dict
+
 analysis_status = {} 
 
 # Possible job statuses
@@ -54,6 +61,104 @@ STATUS_IN_PROGRESS = "In Progress"
 STATUS_COMPLETED = "Completed"
 STATUS_FAILED = "Failed"
 
+@app.get("/agents")
+async def get_agents():
+    try:
+        # Connect to the PostgreSQL database
+        try:
+            conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        except psycopg2.Error as e:
+            print(f"Error connecting to the database: {e}")
+            return {"error": str(e)}
+        cur = conn.cursor()
+
+        # Query to select all rows from the agents table
+        cur.execute("SELECT * FROM agents;")
+        agents = cur.fetchall()
+
+        # Close the connection
+        cur.close()
+        conn.close()
+
+        # Transform the result into a list of dictionaries
+        agent_list = []
+        for agent in agents:
+            agent_dict = {
+                "id": agent[0],
+                "name": agent[1],
+                "description": agent[2],
+                "icon": agent[3],
+                "categories": agent[4],
+                "slug": agent[5],
+                "metadata": agent[6],
+                "created_at": agent[7],
+                "updated_at": agent[8]
+            }
+            agent_list.append(agent_dict)
+
+        # Return the agents
+        return {"agents": agent_list}
+
+    except Exception as e:
+        # Handle any errors that occur
+        return {"error": str(e)}
+    
+
+
+
+
+
+@app.get("/agents/{slug}")
+async def get_agent(slug: str):
+    try:
+        # Connect to the PostgreSQL database
+        try:
+            conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        except psycopg2.Error as e:
+            print(f"Error connecting to the database: {e}")
+            raise HTTPException(status_code=500, detail="Database connection error")
+
+        cur = conn.cursor()
+
+        # Query to select the agent with the given slug
+        cur.execute("SELECT * FROM agents WHERE slug = %s;", (slug,))
+        agent = cur.fetchone()
+
+        # Close the connection
+        cur.close()
+        conn.close()
+
+        # If no agent is found, return a 404 Not Found error
+        if agent is None:
+            print(f"No agent found with slug: {slug}")
+            raise HTTPException(status_code=404, detail="Agent not found")
+
+        # If agent is found, return the agent as a dictionary
+        agent_dict = {
+            "id": agent[0],
+            "name": agent[1],
+            "description": agent[2],
+            "icon": agent[3],
+            "categories": agent[4],
+            "slug": agent[5],
+            "metadata": agent[6],
+            "created_at": agent[7],
+            "updated_at": agent[8]
+        }
+        return {"agent": agent_dict}
+
+    except psycopg2.Error as db_error:
+        print(f"Database error: {db_error}")
+        raise HTTPException(status_code=500, detail="Database error: " + str(db_error))
+
+    except HTTPException as http_exc:
+        # Re-raise HTTP exceptions such as 404 to avoid turning them into 500
+        raise http_exc
+
+    except Exception as e:
+        print(f"Unhandled exception: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error: " + str(e))
+    
 
 @app.get("/agents_count") 
 async def get_agents_count():
@@ -82,21 +187,114 @@ async def get_agents_count():
         # Handle any errors that occur
         return {"error": str(e)}
     
+@app.get("/agents/reports/{report_id}")
+async def get_report_status_and_result(report_id: str):
+    try:
+        # Convert report_id to integer
+        report_id = int(report_id)
 
-@app.get("/status/{job_id}")
-async def get_status(job_id: str):
-    status = analysis_status.get(job_id, STATUS_NOT_STARTED)
-    return {"status": status}
+        # Connect to the PostgreSQL database
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        cur = conn.cursor()
 
-@app.get("/result/{job_id}")
-async def get_result(job_id: str):
-    results_folder = "results"
-    filename = os.path.join(results_folder, f"{job_id}.txt")
-    if os.path.exists(filename):
-        with open(filename, "r") as file:
-            content = file.read()
-        return {"result": content}
-    return {"result": "Analysis not complete or file not found"}
+        # Query to select the report with the given report_id
+        cur.execute("SELECT * FROM reports WHERE id = %s;", (report_id,))
+        report = cur.fetchone()
+        print(f"Report fetched: {report}")
+
+        # If no report is found, return a 404 Not Found error
+        if report is None:
+            raise HTTPException(status_code=404, detail=f"Report with ID {report_id} not found")
+
+        # If report is found, return all the report details as a dictionary
+        report_dict = {
+            "id": report[0],
+            "agent_id": report[1],
+            "user_id": report[2],
+            "account_id": report[3],
+            "status": report[4],
+            "result": report[5],  # Assuming result is JSONB
+            "created_at": report[6],
+            "updated_at": report[7]
+        }
+        return {"report": report_dict}
+
+    except ValueError as ve:
+        print(f"ValueError: {ve}")  # Debugging ValueError
+        # Handle cases where report_id is not a valid integer
+        raise HTTPException(status_code=400, detail="Invalid report ID format. Report ID must be an integer.")
+
+    except psycopg2.Error as db_error:
+        print(f"Database Error: {db_error}")  # Debugging database error
+        # Handle database errors and return a 500 Internal Server Error
+        raise HTTPException(status_code=500, detail=f"Database error: {db_error}")
+
+    except Exception as e:
+        print(f"General Error: {e}")  # Debugging any other general error
+        # Handle any other unhandled exceptions and return a 500 Internal Server Error
+        raise HTTPException(status_code=500, detail=f"Internal server error: {e}")
+
+
+@app.post("/agents/request_report")
+async def request_report(request: ReportRequest, background_tasks: BackgroundTasks):
+    try:
+        # Connect to the PostgreSQL database
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        cur = conn.cursor()
+
+        # Insert the new job into the reports table (assuming a table structure that includes these fields)
+        cur.execute(
+            """
+            INSERT INTO reports (agent_id, user_id, account_id, status, result, created_at, updated_at)
+            VALUES (
+                (SELECT id FROM agents WHERE slug = %s), 
+                %s, %s, %s, %s, NOW(), NOW()
+            ) RETURNING id;
+            """,
+            (request.agent_slug, request.user_id, request.account_id, STATUS_IN_PROGRESS, None)
+        )
+
+        # Fetch the report_id of the newly inserted job (this will be the job ID)
+        report_id = cur.fetchone()[0]
+
+        # Commit the transaction and close the connection
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        # Start the background task for processing the report (simulating the long-running process)
+        # background_tasks.add_task(run_analysis, request.user_request['company_name'], report_id)
+
+        # Message to be returned
+        message = f"Report job started!"
+        # background_tasks.add_task(run_analysis, request.user_request, report_id)
+        user_input = request.user_request.get('input')
+        print(f"USER INPUT {user_input}!")
+
+        background_tasks.add_task(run_analysis, user_input, report_id)
+        return {"message": message, "report_id": report_id}
+
+    except psycopg2.Error as e:
+        # Handle any database-related errors
+        print(f"Database error: {e}")
+        raise HTTPException(status_code=500, detail="Database error: " + str(e))
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error: " + str(e))
+    
+
+
+@app.post("/request_report_working")
+async def company_research(request: CompanyResearchRequest, background_tasks: BackgroundTasks):
+    if not request.company_name:
+        raise HTTPException(status_code=400, detail="company_name is required")
+
+    job_id = str(uuid.uuid4())[:8]
+    background_tasks.add_task(run_analysis, request.company_name, job_id)
+
+    message = f"Company research started for {request.company_name}!"
+    return {"message": message, "report_id": job_id}
 
 @app.post("/company_research")
 async def company_research(request: CompanyResearchRequest, background_tasks: BackgroundTasks):
@@ -128,21 +326,54 @@ async def run_analysis(company_name: str, job_id: str):
         with concurrent.futures.ThreadPoolExecutor() as pool:
             result = await loop.run_in_executor(pool, runAgentResearcherCrew_sync, company_name)
         
-        result_str = str(result)
+        result_json = {
+            "overview": str(result)
+        }
         
         analysis_status[job_id] = STATUS_COMPLETED
 
-        # Write the result to a file
-        results_folder = "results"
-        os.makedirs(results_folder, exist_ok=True)
-        filename = os.path.join(results_folder, f"{job_id}.txt")
-        with open(filename, "w") as file:
-            file.write(result_str)
-        
+        # Connect to the PostgreSQL database
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        cur = conn.cursor()
+
+        # Update the report in the database with the result
+        cur.execute(
+            """
+            UPDATE reports
+            SET status = %s, result = %s, updated_at = NOW()
+            WHERE id = %s;
+            """,
+            (STATUS_COMPLETED, json.dumps(result_json), job_id)
+        )
+
+        # Commit the transaction and close the connection
+        conn.commit()
+        cur.close()
+        conn.close()
+
         print(f"Analysis complete for {company_name} with job ID {job_id}")
     except Exception as e:
         print(f"Error in analysis for {company_name} with job ID {job_id}: {e}")
         analysis_status[job_id] = STATUS_FAILED
+
+        # Connect to the PostgreSQL database
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        cur = conn.cursor()
+
+        # Update the report in the database with the failed status
+        cur.execute(
+            """
+            UPDATE reports
+            SET status = %s, updated_at = NOW()
+            WHERE id = %s;
+            """,
+            (STATUS_FAILED, job_id)
+        )
+
+        # Commit the transaction and close the connection
+        conn.commit()
+        cur.close()
+        conn.close()
 
 # This main file is intended to be a way for your to run your
 # crew locally, so refrain from adding necessary logic into this file.

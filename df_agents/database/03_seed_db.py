@@ -15,15 +15,15 @@ DB_PORT = 5432
 
 # Seed data
 agents = [
-    ('Company Research Agent', 'Researches information and creates a comprehensive report about a given company.', 'fa-regular fa-landmark-magnifying-glass', 'Sales, Marketing', 'companyresearchagent'),
-    ('Similar Companies Agent', 'Discovers key similar companies to the one provided.', 'fa-regular fa-chart-network', 'Sales, Operations', 'similarcompaniesagent')
+    ('Company Research Agent', 'Researches information and creates a comprehensive report about a given company.', 'fa-regular fa-landmark-magnifying-glass', 'Sales, Marketing', 'companyresearchagent', {"question": "What company do you want to research?", "placeholder": "Enter company name"}),
+    ('Similar Companies Agent', 'Discovers key similar companies to the one provided.', 'fa-regular fa-chart-network', 'Sales, Operations', 'similarcompaniesagent', {"question": "What is the company you want to find similar companies for?", "placeholder": "Enter company name"})
 ]
 
-jobs = [
-    (1, 1, 101, 'Not Started', {"summary": "Company research complete"}),
-    (1, 1, 101, 'Completed', {"summary": "Company research complete"}),
-    (1, 1, 101, 'In Progress', {"summary": "Sales forecast is being generated"}),
-    (1, 3, 103, 'Failed', {"summary": "Unable to complete market analysis"})
+reports = [
+    (1, 101, 201, 'Not Started', {"summary": "Company research complete"}),
+    (1, 101, 201, 'Completed', {"summary": "Company research complete"}),
+    (1, 101, 201, 'In Progress', {"summary": "Sales forecast is being generated"}),
+    (3, 103, 203, 'Failed', {"summary": "Unable to complete market analysis"})
 ]
 
 # Function to attempt a database connection
@@ -64,16 +64,16 @@ def seed_database():
 
         # Insert into agents table
         cur.executemany("""
-            INSERT INTO agents (name, description, icon, tags, slug)
-            VALUES (%s, %s, %s, %s, %s)
-        """, agents)
+        INSERT INTO agents (name, description, icon, tags, slug, metadata)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """, [(agent[0], agent[1], agent[2], agent[3], agent[4], Json(agent[5])) for agent in agents])
 
-        # Insert into jobs table
+        # Insert into reports table
         cur.executemany("""
-            INSERT INTO jobs (user_id, account_id, status, result)
-            VALUES (%s, %s, %s, %s)
-        """, [(job[0], job[1], job[2], Json(job[3])) for job in jobs])
-
+        INSERT INTO reports (agent_id, user_id, account_id, status, result)
+        VALUES (%s, %s, %s, %s, %s)
+        """, [(report[0], report[1], report[2], report[3], Json(report[4])) for report in reports])
+        
         # Commit changes
         connection.commit()
 

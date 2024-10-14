@@ -2,43 +2,15 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 
-# Load environment variables from the .env file
+# Load environment variables from .env file
 load_dotenv()
 
-# Fetching environment variables with fallback defaults
+# Database connection details
 DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
 DB_HOST = 'localhost'
 DB_PORT = 5432
-
-# SQL commands to create the tables
-create_agents_table = """
-CREATE TABLE IF NOT EXISTS agents (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    icon TEXT,
-    tags VARCHAR(255),
-    slug VARCHAR(255) NOT NULL UNIQUE,
-    metadata JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-create_reports_table = """
-CREATE TABLE IF NOT EXISTS reports (
-    id SERIAL PRIMARY KEY,
-    agent_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
-    account_id INTEGER NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    result JSONB,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-"""
 
 # Function to attempt a database connection
 def connect_to_db(host):
@@ -58,8 +30,8 @@ def connect_to_db(host):
         print(f"Error occurred during the connection to the database at {host}: {e}")
         return None
 
-# Function to create tables
-def create_tables():
+# Function to execute a query and display the results
+def check_table_content(query):
     # First, try to connect using the value of DB_HOST
     connection = connect_to_db(DB_HOST)
 
@@ -68,7 +40,7 @@ def create_tables():
         print("Falling back to localhost...")
         connection = connect_to_db('localhost')
 
-    # If the connection still fails, exit with an error message
+    # If connection still fails, exit with an error message
     if not connection:
         print("Failed to connect to the database with both DB_HOST and localhost.")
         return
@@ -76,20 +48,26 @@ def create_tables():
     try:
         cur = connection.cursor()
 
-        # Create tables
-        cur.execute(create_agents_table)
-        cur.execute(create_reports_table)
+        # Execute the passed query
+        cur.execute(query)
+        rows = cur.fetchall()
 
-        # Commit changes
-        connection.commit()
+        # Print the result rows
+        print(f"Results of the query '{query}':")
+        for row in rows:
+            print(row)
 
         # Close the cursor and connection
         cur.close()
         connection.close()
 
-        print("Tables created successfully!")
     except Exception as e:
-        print(f"Error occurred while creating tables: {e}")
+        print(f"Error occurred while querying the database: {e}")
+
+# Function to check the content of the reports table specifically
+def check_reports_content():
+    query = "SELECT * FROM reports;"
+    check_table_content(query)
 
 if __name__ == '__main__':
-    create_tables()
+    check_reports_content()
