@@ -6,7 +6,7 @@
 
 - Build the docker image
 ````
-cd df_agents/src/agent_researcher/
+cd df_agents/src/agents/
 docker compose up --build
 ````
 

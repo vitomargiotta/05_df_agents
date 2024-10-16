@@ -22,10 +22,10 @@ crewai install
 
 **Add your `OPENAI_API_KEY` into the `.env` file**
 
-- Modify `src/agent_researcher/config/agents.yaml` to define your agents
-- Modify `src/agent_researcher/config/tasks.yaml` to define your tasks
-- Modify `src/agent_researcher/crew.py` to add your own logic, tools and specific args
-- Modify `src/agent_researcher/main.py` to add custom inputs for your agents and tasks
+- Modify `src/agents/config/agents.yaml` to define your agents
+- Modify `src/agents/config/tasks.yaml` to define your tasks
+- Modify `src/agents/crew.py` to add your own logic, tools and specific args
+- Modify `src/agents/main.py` to add custom inputs for your agents and tasks
 
 ## Running the Project - LOCALLY
 
@@ -35,13 +35,13 @@ To kickstart your crew of AI agents and begin task execution, run this from the 
 $ crewai run
 ```
 
-This command initializes the agent_researcher Crew, assembling the agents and assigning them tasks as defined in your configuration.
+This command initializes the agents Crew, assembling the agents and assigning them tasks as defined in your configuration.
 
 This example, unmodified, will run the create a `report.md` file with the output of a research on LLMs in the root folder.
 
 ## Understanding Your Crew
 
-The agent_researcher Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
+The agents Crew is composed of multiple AI agents, each with unique roles, goals, and tools. These agents collaborate on a series of tasks, defined in `config/tasks.yaml`, leveraging their collective skills to achieve complex objectives. The `config/agents.yaml` file outlines the capabilities and configurations of each agent in your crew.
 
 ## Support
 
@@ -56,5 +56,5 @@ Let's create wonders together with the power and simplicity of crewAI.
 
 # Run Fast API
 ```bash
-$ PYTHONPATH=/Users/vitomargiotta/DF-Development/LF\ Prototyping/05_agent_company_researcher/agent_researcher/src uvicorn agent_researcher.main:app --reload
+$ PYTHONPATH=/Users/vitomargiotta/DF-Development/LF\ Prototyping/05_agent_company_researcher/agents/src uvicorn agents.main:app --reload
 ```

@@ -21,11 +21,15 @@ CREATE TABLE IF NOT EXISTS agents (
     icon TEXT,
     tags VARCHAR(255),
     slug VARCHAR(255) NOT NULL UNIQUE,
+    status VARCHAR(50) NOT NULL, 
+    visibility VARCHAR(50) NOT NULL, 
     metadata JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """
+# Statuses for agents are: Active, Planned, Under Review, Deprecated
+# Visibility for agents are: public, dealfronters_only, creators_only
 
 create_reports_table = """
 CREATE TABLE IF NOT EXISTS reports (
@@ -39,6 +43,8 @@ CREATE TABLE IF NOT EXISTS reports (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """
+# Statuses for reports are: Not Started, In Progress, Completed, Failed
+
 
 # Function to attempt a database connection
 def connect_to_db(host):

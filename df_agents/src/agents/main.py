@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from agent_researcher.crew import AgentResearcherCrew
+from agents.crew import AgentResearcherCrew
 import os
 import json
 
@@ -90,9 +90,11 @@ async def get_agents():
                 "icon": agent[3],
                 "categories": agent[4],
                 "slug": agent[5],
-                "metadata": agent[6],
-                "created_at": agent[7],
-                "updated_at": agent[8]
+                "status": agent[6],
+                "visibility": agent[7],
+                "metadata": agent[8],
+                "created_at": agent[9],
+                "updated_at": agent[10]
             }
             agent_list.append(agent_dict)
 
@@ -141,9 +143,11 @@ async def get_agent(slug: str):
             "icon": agent[3],
             "categories": agent[4],
             "slug": agent[5],
-            "metadata": agent[6],
-            "created_at": agent[7],
-            "updated_at": agent[8]
+            "status": agent[6],
+            "visibility": agent[7],
+            "metadata": agent[8],
+            "created_at": agent[9],
+            "updated_at": agent[10]
         }
         return {"agent": agent_dict}
 
@@ -262,12 +266,8 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         cur.close()
         conn.close()
 
-        # Start the background task for processing the report (simulating the long-running process)
-        # background_tasks.add_task(run_analysis, request.user_request['company_name'], report_id)
-
         # Message to be returned
         message = f"Report job started!"
-        # background_tasks.add_task(run_analysis, request.user_request, report_id)
         user_input = request.user_request.get('input')
         print(f"USER INPUT {user_input}!")
 
@@ -282,30 +282,6 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error: " + str(e))
-    
-
-
-@app.post("/request_report_working")
-async def company_research(request: CompanyResearchRequest, background_tasks: BackgroundTasks):
-    if not request.company_name:
-        raise HTTPException(status_code=400, detail="company_name is required")
-
-    job_id = str(uuid.uuid4())[:8]
-    background_tasks.add_task(run_analysis, request.company_name, job_id)
-
-    message = f"Company research started for {request.company_name}!"
-    return {"message": message, "report_id": job_id}
-
-@app.post("/company_research")
-async def company_research(request: CompanyResearchRequest, background_tasks: BackgroundTasks):
-    if not request.company_name:
-        raise HTTPException(status_code=400, detail="company_name is required")
-
-    job_id = str(uuid.uuid4())[:8]
-    background_tasks.add_task(run_analysis, request.company_name, job_id)
-
-    message = f"Company research started for {request.company_name}!"
-    return {"message": message, "job_id": job_id}
 
 def runAgentResearcherCrew_sync(company_name: str):
     try:

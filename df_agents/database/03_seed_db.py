@@ -15,8 +15,8 @@ DB_PORT = 5432
 
 # Seed data
 agents = [
-    ('Company Research Agent', 'Researches information and creates a comprehensive report about a given company.', 'fa-regular fa-landmark-magnifying-glass', 'Sales, Marketing', 'companyresearchagent', {"question": "What company do you want to research?", "placeholder": "Enter company name"}),
-    ('Similar Companies Agent', 'Discovers key similar companies to the one provided.', 'fa-regular fa-chart-network', 'Sales, Operations', 'similarcompaniesagent', {"question": "What is the company you want to find similar companies for?", "placeholder": "Enter company name"})
+    ('Company Research Agent', 'Researches information and creates a comprehensive report about a given company.', 'fa-regular fa-landmark-magnifying-glass', 'Sales, Marketing', 'companyresearchagent', 'Active', 'public', {"question": "What company do you want to research?", "placeholder": "Enter company name"})
+    # ('Similar Companies Agent', 'Discovers key similar companies to the one provided.', 'fa-regular fa-chart-network', 'Sales, Operations', 'similarcompaniesagent', 'Under Review', 'dealfronters_only', {"question": "What is the company you want to find similar companies for?", "placeholder": "Enter company name"})
 ]
 
 reports = [
@@ -24,7 +24,7 @@ reports = [
     (1, 101, 201, 'Completed', {"summary": "Company research complete"}),
     (1, 101, 201, 'In Progress', {"summary": "Sales forecast is being generated"}),
     (3, 103, 203, 'Failed', {"summary": "Unable to complete market analysis"})
-]
+] # Uncomment the function below, else these will not be seeded
 
 # Function to attempt a database connection
 def connect_to_db(host):
@@ -64,15 +64,15 @@ def seed_database():
 
         # Insert into agents table
         cur.executemany("""
-        INSERT INTO agents (name, description, icon, tags, slug, metadata)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """, [(agent[0], agent[1], agent[2], agent[3], agent[4], Json(agent[5])) for agent in agents])
-
-        # Insert into reports table
-        cur.executemany("""
-        INSERT INTO reports (agent_id, user_id, account_id, status, result)
-        VALUES (%s, %s, %s, %s, %s)
-        """, [(report[0], report[1], report[2], report[3], Json(report[4])) for report in reports])
+        INSERT INTO agents (name, description, icon, tags, slug, status, visibility, metadata)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, [(agent[0], agent[1], agent[2], agent[3], agent[4], agent[5], agent[6], Json(agent[7])) for agent in agents])
+        
+        # Insert into reports table. Uncomment when needed.
+        # cur.executemany("""
+        # INSERT INTO reports (agent_id, user_id, account_id, status, result)
+        # VALUES (%s, %s, %s, %s, %s)
+        # """, [(report[0], report[1], report[2], report[3], Json(report[4])) for report in reports])
         
         # Commit changes
         connection.commit()
