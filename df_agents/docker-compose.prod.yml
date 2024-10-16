@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  # FastAPI Application
+  fastapi_app:
+    image: python:3.12-slim  # Use the official Python image
+    container_name: fastapi_app
+    working_dir: /app
+    volumes:
+      - .:/app  # Mount the current directory to /app in the container
+    command: /bin/sh -c "apt-get update && apt-get install -y build-essential cmake g++ libstdc++6 gcc && pip install --upgrade pip && pip install -r requirements.txt && uvicorn agent_researcher.main:app --host 0.0.0.0 --port 8000 --reload"
+    environment:
+      - PYTHONPATH=/app/src  # Set the PYTHONPATH to locate the modules
+      - DATABASE_URL=${DB_URL}  # PostgreSQL connection string
+    ports:
+      - "8000:8000"  # Expose FastAPI on port 8000
+    depends_on:
+      - postgres_db  # Ensure PostgreSQL starts before FastAPI
+    networks:
+      - app_network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:latest  # Use the latest Nginx image
+    container_name: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf  # Use custom Nginx configuration
+      - /etc/letsencrypt:/etc/letsencrypt  # Mount the Let's Encrypt certificates
+      - /var/www/certbot:/var/www/certbot  # Directory for Certbot challenges
+    ports:
+      - "80:80"  # HTTP (to allow Let's Encrypt challenge)
+      - "443:443"  # HTTPS for production
+    depends_on:
+      - fastapi_app  # Ensure FastAPI is up before Nginx
+    networks:
+      - app_network
+    command: /bin/bash -c "apt-get update && apt-get install -y certbot python3-certbot-nginx && nginx -g 'daemon off;'"
+
+  # PostgreSQL Database
+  postgres_db:
+    image: postgres:14  # Use the official PostgreSQL image
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: ${DB_USER}  # Use environment variable
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Use environment variable
+      POSTGRES_DB: ${DB_NAME}  # Use environment variable
+    ports:
+      - "5432:5432"  # Expose PostgreSQL port 5432 to the host machine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Volume for persistent PostgreSQL data
+    networks:
+      - app_network
+
+# Volumes for persistent data storage
+volumes:
+  postgres_data:
+
+# Docker network to allow communication between containers
+networks:
+  app_network:

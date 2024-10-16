@@ -7,7 +7,7 @@
 - Build the docker image
 ````
 cd df_agents/src/agent_researcher/
-docker compose up
+docker compose up --build
 ````
 
 - Create database schema and seed initial data
@@ -38,31 +38,40 @@ python drop_all_tables.py
 
 # DEPLOY TO VM
 
+
 - ssh into the vm 
 ````
 ssh -i /Users/vitomargiotta/.ssh/id_rsa root@188.245.180.119
 ````
 
-- shut down docker compose if already running
+- shut down docker
 ````
+cd df_agents/
 docker compose down
 ````
 
-- copy code into VM, run this in a new terminal (in a new terminal, should not be already SSH into VM)
+- delete the folder
+````
+cd ..
+rm -rf df_agents/
+````
+
+- in a separate terminal, copy code into VM, run this in a new terminal
 ````
 scp -i /Users/vitomargiotta/.ssh/id_rsa -r "/Users/vitomargiotta/DF-Development/prototyping/05_df_agents/df_agents" root@188.245.180.119:/root/
 ````
 
-- make sure the .env file is the production one
+- make sure the .env file and the docker compose file are the production ones
 ````
 cd df_agents
 rm -f .env && mv .env.production .env
+rm -f docker-compose.yml && mv docker-compose.prod.yml docker-compose.yml
 ````
 
 
 - Build the docker image
 ````
-docker compose up --build
+docker compose up --build -d
 ````
 
 - Create database schema and seed initial data
