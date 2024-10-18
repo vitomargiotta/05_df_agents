@@ -16,7 +16,7 @@ DB_PORT = 5432
 # Seed data
 agents = [
     ('Company Research Agent', 'Researches information and creates a comprehensive report about a given company.', 'fa-regular fa-landmark-magnifying-glass', 'Sales, Marketing', 'company-research-agent', 'Active', 'public', {"question": "What company do you want to research?", "placeholder": "Enter company name"}),
-    ('Competitors Research Agent', 'Finds info about the main competitors for the given company.', 'fa-regular fa-landmark-magnifying-glass', 'Sales, Operations', 'competitors-research-agent', 'Active', 'public', {"question": "What company do you want to find competitors for?", "placeholder": "Enter company name"})
+    ('Competitors Research Agent', 'Finds info about the main competitors for the given company.', 'fa-regular fa-landmark-magnifying-glass', 'Sales, Operations', 'competitors-research-agent', 'Active', 'public', {"question": "What company do you want to find competitors for?", "placeholder": "Enter company website. E.g. www.dealfront.com"})
 ]
 
 reports = [
