@@ -10,39 +10,39 @@ import sys
 
 @CrewBase
 class CompanyResearchCrew():
-	"""AgentResearcher crew"""
+	"""CompanyResearch crew"""
 
 	@agent
-	def researcher(self) -> Agent:
+	def company_researcher(self) -> Agent:
 		return Agent(
-			config=self.agents_config['researcher'],
+			config=self.agents_config['company_researcher'],
 			# tools=[MyCustomTool()], # Example of custom tool, loaded on the beginning of file
 			verbose=True
 		)
 
 	@agent
-	def reporting_analyst(self) -> Agent:
+	def company_overview_generation_analyst(self) -> Agent:
 		return Agent(
-			config=self.agents_config['reporting_analyst'],
+			config=self.agents_config['company_overview_generation_analyst'],
 			verbose=True
 		)
 
 	@task
-	def research_task(self) -> Task:
+	def company_research_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['research_task'],
+			config=self.tasks_config['company_research_task'],
 		)
 
 	@task
-	def reporting_task(self) -> Task:
+	def company_overview_generation_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['reporting_task'],
+			config=self.tasks_config['company_overview_generation_task'],
 			output_file='report.md'
 		)
 
 	@crew
 	def crew(self) -> Crew:
-		"""Creates the AgentResearcher crew"""
+		"""Creates the CompanyResearch crew"""
 		return Crew(
 			agents=self.agents, # Automatically created by the @agent decorator
 			tasks=self.tasks, # Automatically created by the @task decorator
