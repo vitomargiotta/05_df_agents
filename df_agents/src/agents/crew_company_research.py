@@ -21,6 +21,13 @@ class CompanyResearchCrew():
 		)
 
 	@agent
+	def company_overview_generation_analyst(self) -> Agent:
+		return Agent(
+			config=self.agents_config['company_overview_generation_analyst'],
+			verbose=True
+		)
+	  
+	@agent
 	def reporting_analyst(self) -> Agent:
 		return Agent(
 			config=self.agents_config['reporting_analyst'],
@@ -31,6 +38,13 @@ class CompanyResearchCrew():
 	def research_task(self) -> Task:
 		return Task(
 			config=self.tasks_config['research_task'],
+		)
+
+	@task
+	def company_overview_generation_task(self) -> Task:
+		return Task(
+			config=self.tasks_config['company_overview_generation_task'],
+			output_file='report.md'
 		)
 
 	@task
