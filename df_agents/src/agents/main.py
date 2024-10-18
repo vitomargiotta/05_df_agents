@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 from agents.crew_company_research import CompanyResearchCrew
-from agents.crew_competitors_research import CompetitorResearchCrew
+from agents.crew_competitors_research import CompetitorsResearchCrew
 import os
 import json
 
@@ -268,10 +268,10 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         conn.close()
 
         # Select the appropriate crew based on the agent_slug
-        if request.agent_slug == "companyresearchagent":
+        if request.agent_slug == "company-research-agent":
             crew_instance = CompanyResearchCrew()
-        elif request.agent_slug == "competitorresearchagent":
-            crew_instance = CompetitorResearchCrew()
+        elif request.agent_slug == "competitors-research-agent":
+            crew_instance = CompetitorsResearchCrew()
         else:
             raise HTTPException(status_code=400, detail="Invalid agent slug")
 
@@ -361,106 +361,3 @@ def run_crew_sync(company_name: str, crew_instance):
     except Exception as e:
         print(f"Error running analysis for {company_name}: {e}")
         raise
-
-# This main file is intended to be a way for your to run your
-# crew locally, so refrain from adding necessary logic into this file.
-# Replace with inputs you want to test with, it will automatically
-# interpolate any tasks and agents information
-
-# --- Helper Functions for CompanyResearchCrew ---
-
-def runCompanyResearchCrew(company):
-    """
-    Run the Company Research crew.
-    """
-    inputs = {
-        'topic': company
-    }
-    print(f"Starting Company Research for: {company}")
-    result = CompanyResearchCrew().crew().kickoff(inputs=inputs)
-    return result
-
-
-def trainCompanyResearchCrew():
-    """
-    Train the Company Research crew for a given number of iterations.
-    """
-    inputs = {
-        "topic": "AI LLMs"
-    }
-    try:
-        CompanyResearchCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
-    except Exception as e:
-        raise Exception(f"An error occurred while training the Company Research crew: {e}")
-
-
-def replayCompanyResearchCrew():
-    """
-    Replay the Company Research crew execution from a specific task.
-    """
-    try:
-        CompanyResearchCrew().crew().replay(task_id=sys.argv[1])
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the Company Research crew: {e}")
-
-
-def testCompanyResearchCrew():
-    """
-    Test the Company Research crew execution and return the results.
-    """
-    inputs = {
-        "topic": "AI LLMs"
-    }
-    try:
-        CompanyResearchCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
-    except Exception as e:
-        raise Exception(f"An error occurred while testing the Company Research crew: {e}")
-
-# --- Helper Functions for CompetitorResearchCrew ---
-
-def runCompetitorResearchCrew(company):
-    """
-    Run the Competitor Research crew.
-    """
-    inputs = {
-        'topic': company
-    }
-    print(f"Starting Competitor Research for: {company}")
-    result = CompetitorResearchCrew().crew().kickoff(inputs=inputs)
-    return result
-
-
-def trainCompetitorResearchCrew():
-    """
-    Train the Competitor Research crew for a given number of iterations.
-    """
-    inputs = {
-        "topic": "Competitor AI Analysis"
-    }
-    try:
-        CompetitorResearchCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
-    except Exception as e:
-        raise Exception(f"An error occurred while training the Competitor Research crew: {e}")
-
-
-def replayCompetitorResearchCrew():
-    """
-    Replay the Competitor Research crew execution from a specific task.
-    """
-    try:
-        CompetitorResearchCrew().crew().replay(task_id=sys.argv[1])
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the Competitor Research crew: {e}")
-
-
-def testCompetitorResearchCrew():
-    """
-    Test the Competitor Research crew execution and return the results.
-    """
-    inputs = {
-        "topic": "Competitor AI Analysis"
-    }
-    try:
-        CompetitorResearchCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
-    except Exception as e:
-        raise Exception(f"An error occurred while testing the Competitor Research crew: {e}")

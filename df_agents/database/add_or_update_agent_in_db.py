@@ -16,11 +16,11 @@ DB_PORT = 5432
 # Define the agent data in a variable, easy to edit
 agent_data = {
     "id": None,  # Set this to the agent's id if you want to update, else None
-    "name": "Competitor Research Agent",
+    "name": "Company Research Agent",
     "description": "This is a new agent for demonstrating how to add agents.",
     "icon": "fa-regular fa-landmark-magnifying-glass",
-    "tags": "Sales, Marketing",
-    "slug": "competitorresearchagent",  # Slug must be unique
+    "tags": "Sales, Operations",
+    "slug": "company-research-agent",  # Slug must be unique
     "status": "Active",
     "visibility": "public",
     "metadata": {"question": "What data do you need?", "placeholder": "Enter data"}

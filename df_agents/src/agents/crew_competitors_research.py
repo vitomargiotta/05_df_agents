@@ -1,5 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+import sys
 
 # Uncomment the following line to use an example of a custom tool
 # from agents.tools.custom_tool import MyCustomTool
@@ -8,7 +9,7 @@ from crewai.project import CrewBase, agent, crew, task
 # from crewai_tools import SerperDevTool
 
 @CrewBase
-class CompetitorResearchCrew():
+class CompetitorsResearchCrew():
 	"""AgentResearcher crew"""
 
 	@agent
@@ -49,3 +50,52 @@ class CompetitorResearchCrew():
 			verbose=True,
 			# process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
 		)
+	
+# Helper functions for CompetitorsResearchCrew
+
+def runCompetitorsResearchCrew(company):
+    """
+    Run the Competitor Research crew.
+    """
+    inputs = {
+        'topic': company
+    }
+    print(f"Starting Competitor Research for: {company}")
+    result = CompetitorsResearchCrew().crew().kickoff(inputs=inputs)
+    return result
+
+
+def trainCompetitorsResearchCrew():
+    """
+    Train the Competitor Research crew for a given number of iterations.
+    """
+    inputs = {
+        "topic": "Competitor AI Analysis"
+    }
+    try:
+        CompetitorsResearchCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+    except Exception as e:
+        raise Exception(f"An error occurred while training the Competitor Research crew: {e}")
+
+
+def replayCompetitorsResearchCrew():
+    """
+    Replay the Competitor Research crew execution from a specific task.
+    """
+    try:
+        CompetitorsResearchCrew().crew().replay(task_id=sys.argv[1])
+    except Exception as e:
+        raise Exception(f"An error occurred while replaying the Competitor Research crew: {e}")
+
+
+def testCompetitorsResearchCrew():
+    """
+    Test the Competitor Research crew execution and return the results.
+    """
+    inputs = {
+        "topic": "Competitor AI Analysis"
+    }
+    try:
+        CompetitorsResearchCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
+    except Exception as e:
+        raise Exception(f"An error occurred while testing the Competitor Research crew: {e}")
