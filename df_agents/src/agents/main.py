@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
-from agents.crew import AgentResearcherCrew
+from agents.crew_company_research import CompanyResearchCrew
+from agents.crew_competitors_research import CompetitorResearchCrew
 import os
 import json
 
@@ -266,12 +267,20 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         cur.close()
         conn.close()
 
+        # Select the appropriate crew based on the agent_slug
+        if request.agent_slug == "companyresearchagent":
+            crew_instance = CompanyResearchCrew()
+        elif request.agent_slug == "competitorresearchagent":
+            crew_instance = CompetitorResearchCrew()
+        else:
+            raise HTTPException(status_code=400, detail="Invalid agent slug")
+
         # Message to be returned
         message = f"Report job started!"
         user_input = request.user_request.get('input')
         print(f"USER INPUT {user_input}!")
 
-        background_tasks.add_task(run_analysis, user_input, report_id)
+        background_tasks.add_task(run_analysis, user_input, report_id, crew_instance)
         return {"message": message, "report_id": report_id}
 
     except psycopg2.Error as e:
@@ -283,16 +292,7 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error: " + str(e))
 
-def runAgentResearcherCrew_sync(company_name: str):
-    try:
-        # raise Exception("Simulated failure")
-        result = runAgentResearcherCrew(company_name)
-        return result
-    except Exception as e:
-        print(f"Error running analysis for {company_name}: {e}")
-        raise
-
-async def run_analysis(company_name: str, job_id: str):
+async def run_analysis(company_name: str, job_id: str, crew_instance):
     try:
         print(f"Running analysis for {company_name} with job ID {job_id}")
 
@@ -300,7 +300,7 @@ async def run_analysis(company_name: str, job_id: str):
         
         loop = asyncio.get_event_loop()
         with concurrent.futures.ThreadPoolExecutor() as pool:
-            result = await loop.run_in_executor(pool, runAgentResearcherCrew_sync, company_name)
+            result = await loop.run_in_executor(pool, run_crew_sync, company_name, crew_instance)
         
         result_json = {
             "overview": str(result)
@@ -351,55 +351,116 @@ async def run_analysis(company_name: str, job_id: str):
         cur.close()
         conn.close()
 
+def run_crew_sync(company_name: str, crew_instance):
+    try:
+        # Kick off the crew process with the input
+        inputs = {'topic': company_name}
+        print(f"Starting with: {company_name}")
+        result = crew_instance.crew().kickoff(inputs=inputs)
+        return result
+    except Exception as e:
+        print(f"Error running analysis for {company_name}: {e}")
+        raise
+
 # This main file is intended to be a way for your to run your
 # crew locally, so refrain from adding necessary logic into this file.
 # Replace with inputs you want to test with, it will automatically
 # interpolate any tasks and agents information
 
-def runAgentResearcherCrew(company):
+# --- Helper Functions for CompanyResearchCrew ---
+
+def runCompanyResearchCrew(company):
     """
-    Run the crew.
+    Run the Company Research crew.
     """
     inputs = {
         'topic': company
     }
-    print(f"GOING TO START WITH THE FOLLOWING: {company}")
-    result = AgentResearcherCrew().crew().kickoff(inputs=inputs)
+    print(f"Starting Company Research for: {company}")
+    result = CompanyResearchCrew().crew().kickoff(inputs=inputs)
     return result
 
 
-def train():
+def trainCompanyResearchCrew():
     """
-    Train the crew for a given number of iterations.
-    """
-    inputs = {
-        "topic": "AI LLMs"
-    }
-    try:
-        AgentResearcherCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
-
-    except Exception as e:
-        raise Exception(f"An error occurred while training the crew: {e}")
-
-def replay():
-    """
-    Replay the crew execution from a specific task.
-    """
-    try:
-        AgentResearcherCrew().crew().replay(task_id=sys.argv[1])
-
-    except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
-
-def test():
-    """
-    Test the crew execution and returns the results.
+    Train the Company Research crew for a given number of iterations.
     """
     inputs = {
         "topic": "AI LLMs"
     }
     try:
-        AgentResearcherCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
-
+        CompanyResearchCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
     except Exception as e:
-        raise Exception(f"An error occurred while replaying the crew: {e}")
+        raise Exception(f"An error occurred while training the Company Research crew: {e}")
+
+
+def replayCompanyResearchCrew():
+    """
+    Replay the Company Research crew execution from a specific task.
+    """
+    try:
+        CompanyResearchCrew().crew().replay(task_id=sys.argv[1])
+    except Exception as e:
+        raise Exception(f"An error occurred while replaying the Company Research crew: {e}")
+
+
+def testCompanyResearchCrew():
+    """
+    Test the Company Research crew execution and return the results.
+    """
+    inputs = {
+        "topic": "AI LLMs"
+    }
+    try:
+        CompanyResearchCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
+    except Exception as e:
+        raise Exception(f"An error occurred while testing the Company Research crew: {e}")
+
+# --- Helper Functions for CompetitorResearchCrew ---
+
+def runCompetitorResearchCrew(company):
+    """
+    Run the Competitor Research crew.
+    """
+    inputs = {
+        'topic': company
+    }
+    print(f"Starting Competitor Research for: {company}")
+    result = CompetitorResearchCrew().crew().kickoff(inputs=inputs)
+    return result
+
+
+def trainCompetitorResearchCrew():
+    """
+    Train the Competitor Research crew for a given number of iterations.
+    """
+    inputs = {
+        "topic": "Competitor AI Analysis"
+    }
+    try:
+        CompetitorResearchCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+    except Exception as e:
+        raise Exception(f"An error occurred while training the Competitor Research crew: {e}")
+
+
+def replayCompetitorResearchCrew():
+    """
+    Replay the Competitor Research crew execution from a specific task.
+    """
+    try:
+        CompetitorResearchCrew().crew().replay(task_id=sys.argv[1])
+    except Exception as e:
+        raise Exception(f"An error occurred while replaying the Competitor Research crew: {e}")
+
+
+def testCompetitorResearchCrew():
+    """
+    Test the Competitor Research crew execution and return the results.
+    """
+    inputs = {
+        "topic": "Competitor AI Analysis"
+    }
+    try:
+        CompetitorResearchCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
+    except Exception as e:
+        raise Exception(f"An error occurred while testing the Competitor Research crew: {e}")
