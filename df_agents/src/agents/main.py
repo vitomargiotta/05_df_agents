@@ -4,7 +4,6 @@ import os
 import json
 from agents.crews.crew_company_research.crew_company_research import CompanyResearchCrew
 from agents.crews.crew_competitor_research.crew_competitors_research import CompetitorsResearchCrew
-from agents.flow_test import CompetitorResearchFlow
 from agents.flow_test2 import LeadScoreFlow
 
 # SETUP THE FastAPI SERVER
@@ -274,7 +273,7 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         elif request.agent_slug == "competitors-research-agent":
             # crew_instance = CompetitorsResearchCrew()
             # crew_instance = CompetitorResearchFlow()
-            crew_instance = LeadScoreFlow()
+            crew_instance = LeadScoreFlow(report_id)
         else:
             raise HTTPException(status_code=400, detail="Invalid agent slug")
 
@@ -302,6 +301,7 @@ async def run_analysis(user_input: str, job_id: str, crew_instance):
         # Start the flow directly with inputs containing job_id and user_input
         inputs = {"job_id": job_id, "topic": user_input}
         # crew_instance.kickoff(inputs=inputs)
+        # await crew_instance.kickoff(inputs=inputs)
         await crew_instance.kickoff()
 
         # print(f"Analysis initiation complete for {user_input} with job ID {job_id}")

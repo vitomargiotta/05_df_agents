@@ -24,21 +24,12 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = 5432
 
-# from lead_score_flow.constants import JOB_DESCRIPTION
-# from lead_score_flow.crews.lead_response_crew.lead_response_crew import LeadResponseCrew
-# from lead_score_flow.crews.lead_score_crew.lead_score_crew import LeadScoreCrew
-# from lead_score_flow.types import Candidate, CandidateScore, ScoredCandidate
-# from lead_score_flow.utils.candidateUtils import combine_candidates_with_scores
-
-
-# class LeadScoreState(BaseModel):
-#     candidates: List[Candidate] = []
-#     candidate_score: List[CandidateScore] = []
-#     hydrated_candidates: List[ScoredCandidate] = []
-#     scored_leads_feedback: str = ""
-
 
 class LeadScoreFlow(Flow[WelcomeMessageState]):
+    def __init__(self, job_id):
+        super().__init__()
+        self.job_id = job_id
+
     initial_state = WelcomeMessageState
 
     @start()
@@ -46,6 +37,9 @@ class LeadScoreFlow(Flow[WelcomeMessageState]):
         print(f"1111111111")
         print(f"1111111111")
         print(f"1111111111")
+        print("&&&&&&&&&&&&&")
+        print(f"JOB ID: {self.job_id}")
+        print("&&&&&&&&&&&&&")
 
     @listen("load_leads")
     async def load_leads2(self):
@@ -56,8 +50,11 @@ class LeadScoreFlow(Flow[WelcomeMessageState]):
     @listen("load_leads2")
     async def start_crew(self):
         print("About to start the crew")
+        print(f"################# Using Job ID: {self.job_id}")
 
-        async def score_single_candidate(job_id=96):
+        job_id = self.job_id
+
+        async def score_single_candidate(job_id):
             conn = None
             try:
                 result = await (
@@ -119,41 +116,10 @@ class LeadScoreFlow(Flow[WelcomeMessageState]):
                 if conn:
                     conn.close()
 
-        job_id = 99  # Temporary job ID
         asyncio.create_task(score_single_candidate(job_id))
 
         print("FINISHED EXECUTING CREW")
 
-    # @listen("load_leads2")
-    # async def start_crew(self):
-    #     print("About to start the crew")
-
-    #     async def score_single_candidate():
-    #         result = await (
-    #             WelcomerCrew()
-    #             .crew()
-    #             .kickoff_async(
-    #                 # inputs={
-    #                 #     "candidate_id": candidate.id,
-    #                 #     "name": candidate.name,
-    #                 #     "bio": candidate.bio,
-    #                 #     "job_description": JOB_DESCRIPTION,
-    #                 #     "additional_instructions": self.state.scored_leads_feedback,
-    #                 # }
-    #             )
-    #         )
-
-    #         print("RESULT BELOW")
-    #         print(result)
-    #         print("PYDANTIC RESULT BELOW")
-    #         print(result.pydantic)
-    #         print("DONE WITH RESULTS")
-
-    #     asyncio.create_task(score_single_candidate())
-
-
-    #     # candidate_scores = await asyncio.gather(*tasks)
-    #     print("FINISHED EXECUTING CREW")
 
     @listen("start_crew")
     async def load_leads3(self):
