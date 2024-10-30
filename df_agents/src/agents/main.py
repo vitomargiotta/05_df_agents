@@ -292,15 +292,15 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail="Internal server error: " + str(e))
 
-async def run_analysis(company_name: str, job_id: str, crew_instance):
+async def run_analysis(user_input: str, job_id: str, crew_instance):
     try:
-        print(f"Running analysis for {company_name} with job ID {job_id}")
+        print(f"Running analysis for {user_input} with job ID {job_id}")
 
         analysis_status[job_id] = STATUS_IN_PROGRESS
         
         loop = asyncio.get_event_loop()
         with concurrent.futures.ThreadPoolExecutor() as pool:
-            result = await loop.run_in_executor(pool, run_crew_sync, company_name, crew_instance)
+            result = await loop.run_in_executor(pool, run_crew_sync, user_input, crew_instance)
         
         result_json = {
             "overview": str(result)
@@ -327,9 +327,9 @@ async def run_analysis(company_name: str, job_id: str, crew_instance):
         cur.close()
         conn.close()
 
-        print(f"Analysis complete for {company_name} with job ID {job_id}")
+        print(f"Analysis complete for {user_input} with job ID {job_id}")
     except Exception as e:
-        print(f"Error in analysis for {company_name} with job ID {job_id}: {e}")
+        print(f"Error in analysis for {user_input} with job ID {job_id}: {e}")
         analysis_status[job_id] = STATUS_FAILED
 
         # Connect to the PostgreSQL database
