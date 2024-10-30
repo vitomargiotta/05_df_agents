@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import sys
-from agents.crews.crew_company_research.crew_company_research import CompanyResearchCrew
-from agents.crews.crew_competitor_research.crew_competitors_research import CompetitorsResearchCrew
 import os
 import json
-
+from agents.crews.crew_company_research.crew_company_research import CompanyResearchCrew
+from agents.crews.crew_competitor_research.crew_competitors_research import CompetitorsResearchCrew
+from agents.flow_test import CompetitorResearchFlow
 
 # SETUP THE FastAPI SERVER
 
@@ -271,7 +271,8 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         if request.agent_slug == "company-research-agent":
             crew_instance = CompanyResearchCrew()
         elif request.agent_slug == "competitors-research-agent":
-            crew_instance = CompetitorsResearchCrew()
+            # crew_instance = CompetitorsResearchCrew()
+            crew_instance = CompetitorResearchFlow()
         else:
             raise HTTPException(status_code=400, detail="Invalid agent slug")
 
@@ -300,7 +301,8 @@ async def run_analysis(user_input: str, job_id: str, crew_instance):
         
         loop = asyncio.get_event_loop()
         with concurrent.futures.ThreadPoolExecutor() as pool:
-            result = await loop.run_in_executor(pool, run_crew_sync, user_input, crew_instance)
+            # Pass job_id and user_input to run_crew_sync
+            result = await loop.run_in_executor(pool, run_crew_sync, job_id, user_input, crew_instance)
         
         result_json = {
             "overview": str(result)
@@ -351,13 +353,13 @@ async def run_analysis(user_input: str, job_id: str, crew_instance):
         cur.close()
         conn.close()
 
-def run_crew_sync(company_name: str, crew_instance):
+def run_crew_sync(job_id: str, user_input: str, crew_instance):
     try:
-        # Kick off the crew process with the input
-        inputs = {'topic': company_name}
-        print(f"Starting with: {company_name}")
-        result = crew_instance.crew().kickoff(inputs=inputs)
+        # Pass job_id and user_input to the kickoff method
+        inputs = {'topic': user_input, 'job_id': job_id}
+        print(f"Starting analysis with job ID: {job_id} and user input: {user_input}")
+        result = crew_instance.kickoff(inputs=inputs)
         return result
     except Exception as e:
-        print(f"Error running analysis for {company_name}: {e}")
+        print(f"Error running analysis for job ID {job_id} with user input {user_input}: {e}")
         raise
