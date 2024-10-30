@@ -5,6 +5,7 @@ import json
 from agents.crews.crew_company_research.crew_company_research import CompanyResearchCrew
 from agents.crews.crew_competitor_research.crew_competitors_research import CompetitorsResearchCrew
 from agents.flow_test import CompetitorResearchFlow
+from agents.flow_test2 import LeadScoreFlow
 
 # SETUP THE FastAPI SERVER
 
@@ -272,7 +273,8 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
             crew_instance = CompanyResearchCrew()
         elif request.agent_slug == "competitors-research-agent":
             # crew_instance = CompetitorsResearchCrew()
-            crew_instance = CompetitorResearchFlow()
+            # crew_instance = CompetitorResearchFlow()
+            crew_instance = LeadScoreFlow()
         else:
             raise HTTPException(status_code=400, detail="Invalid agent slug")
 
@@ -295,71 +297,13 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
 
 async def run_analysis(user_input: str, job_id: str, crew_instance):
     try:
-        print(f"Running analysis for {user_input} with job ID {job_id}")
+        # print(f"Running analysis for {user_input} with job ID {job_id}")
 
-        analysis_status[job_id] = STATUS_IN_PROGRESS
-        
-        loop = asyncio.get_event_loop()
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            # Pass job_id and user_input to run_crew_sync
-            result = await loop.run_in_executor(pool, run_crew_sync, job_id, user_input, crew_instance)
-        
-        result_json = {
-            "overview": str(result)
-        }
-        
-        analysis_status[job_id] = STATUS_COMPLETED
+        # Start the flow directly with inputs containing job_id and user_input
+        inputs = {"job_id": job_id, "topic": user_input}
+        # crew_instance.kickoff(inputs=inputs)
+        await crew_instance.kickoff()
 
-        # Connect to the PostgreSQL database
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
-        cur = conn.cursor()
-
-        # Update the report in the database with the result
-        cur.execute(
-            """
-            UPDATE reports
-            SET status = %s, result = %s, updated_at = NOW()
-            WHERE id = %s;
-            """,
-            (STATUS_COMPLETED, json.dumps(result_json), job_id)
-        )
-
-        # Commit the transaction and close the connection
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        print(f"Analysis complete for {user_input} with job ID {job_id}")
+        # print(f"Analysis initiation complete for {user_input} with job ID {job_id}")
     except Exception as e:
         print(f"Error in analysis for {user_input} with job ID {job_id}: {e}")
-        analysis_status[job_id] = STATUS_FAILED
-
-        # Connect to the PostgreSQL database
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
-        cur = conn.cursor()
-
-        # Update the report in the database with the failed status
-        cur.execute(
-            """
-            UPDATE reports
-            SET status = %s, updated_at = NOW()
-            WHERE id = %s;
-            """,
-            (STATUS_FAILED, job_id)
-        )
-
-        # Commit the transaction and close the connection
-        conn.commit()
-        cur.close()
-        conn.close()
-
-def run_crew_sync(job_id: str, user_input: str, crew_instance):
-    try:
-        # Pass job_id and user_input to the kickoff method
-        inputs = {'topic': user_input, 'job_id': job_id}
-        print(f"Starting analysis with job ID: {job_id} and user input: {user_input}")
-        result = crew_instance.kickoff(inputs=inputs)
-        return result
-    except Exception as e:
-        print(f"Error running analysis for job ID {job_id} with user input {user_input}: {e}")
-        raise

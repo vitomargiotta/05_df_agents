@@ -1,0 +1,6 @@
+welcome_message_task:
+  description: >
+    Welcome a new team member
+  expected_output: >
+    One sentence welcoming the new team member
+  agent: welcomer_agent
