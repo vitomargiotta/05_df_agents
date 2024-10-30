@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
-from agents.crew_company_research import CompanyResearchCrew
-from agents.crew_competitors_research import CompetitorsResearchCrew
+from agents.crews.crew_company_research.crew_company_research import CompanyResearchCrew
+from agents.crews.crew_competitor_research.crew_competitors_research import CompetitorsResearchCrew
 import os
 import json
 

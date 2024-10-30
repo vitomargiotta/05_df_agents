@@ -12,6 +12,9 @@ import sys
 class CompetitorsResearchCrew():
 	"""AgentResearcher crew"""
 
+	agents_config = "config/agents.yaml"
+	tasks_config = "config/tasks.yaml"
+
 	@agent
 	def company_researcher(self) -> Agent:
 		return Agent(
@@ -27,6 +30,13 @@ class CompetitorsResearchCrew():
 			verbose=True
 		)
 
+	@agent
+	def email_writer(self) -> Agent:
+		return Agent(
+			config=self.agents_config['email_writer'],
+			verbose=True
+		)
+
 	@task
 	def company_research_task(self) -> Task:
 		return Task(
@@ -38,6 +48,12 @@ class CompetitorsResearchCrew():
 		return Task(
 			config=self.tasks_config['company_overview_generation_task'],
 			output_file='report.md'
+		)
+
+	@task
+	def email_writing_task(self) -> Task:
+		return Task(
+			config=self.tasks_config['email_writing_task'],
 		)
 
 	@crew
