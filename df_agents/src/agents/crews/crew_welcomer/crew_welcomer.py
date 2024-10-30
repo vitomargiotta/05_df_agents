@@ -5,7 +5,7 @@ import sys
 from pydantic import BaseModel
 
 class WelcomeMessage(BaseModel):
-    emailContent: str
+    overview: str
 
 # Uncomment the following line to use an example of a custom tool
 # from agents.tools.custom_tool import MyCustomTool
