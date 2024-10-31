@@ -20,10 +20,10 @@ agents = [
 ]
 
 reports = [
-    (1, 101, 201, 'Not Started', {"summary": "Company research complete"}),
-    (1, 101, 201, 'Completed', {"summary": "Company research complete"}),
-    (1, 101, 201, 'In Progress', {"summary": "Sales forecast is being generated"}),
-    (3, 103, 203, 'Failed', {"summary": "Unable to complete market analysis"})
+    (1, 101, 201, 'Not Started', {"company": "Coca Cola"}, {"summary": "Company research complete"}),
+    (1, 101, 201, 'Completed', {"company": "Twitter"},  {"summary": "Company research complete"}),
+    (1, 101, 201, 'In Progress', {"company": "Tesla"},  {"summary": "Sales forecast is being generated"}),
+    (3, 103, 203, 'Failed', {"company": "Dealfront"},  {"summary": "Unable to complete market analysis"})
 ] # Uncomment the function below, else these will not be seeded
 
 # Function to attempt a database connection
@@ -69,10 +69,10 @@ def seed_database():
         """, [(agent[0], agent[1], agent[2], agent[3], agent[4], agent[5], agent[6], Json(agent[7])) for agent in agents])
         
         # Insert into reports table. Uncomment when needed.
-        # cur.executemany("""
-        # INSERT INTO reports (agent_id, user_id, account_id, status, result)
-        # VALUES (%s, %s, %s, %s, %s)
-        # """, [(report[0], report[1], report[2], report[3], Json(report[4])) for report in reports])
+        cur.executemany("""
+        INSERT INTO reports (agent_id, user_id, account_id, status, user_input, result)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """, [(report[0], report[1], report[2], report[3], Json(report[4]), Json(report[5])) for report in reports])
         
         # Commit changes
         connection.commit()

@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS reports (
     user_id INTEGER NOT NULL,
     account_id INTEGER NOT NULL,
     status VARCHAR(50) NOT NULL,
+    user_input JSONB,
     result JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

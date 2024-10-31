@@ -1,0 +1,6 @@
+company_target_industries_creation_task:
+  description: >
+    Write the top 3 target industries for the company: {input}
+  expected_output: >
+   A list of 3 top target industries for the company {input}
+  agent: company_target_industries_writer

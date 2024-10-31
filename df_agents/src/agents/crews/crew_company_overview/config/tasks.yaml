@@ -1,0 +1,6 @@
+company_overview_creation_task:
+  description: >
+    Write a comprehensive overview on the following company: {input}
+  expected_output: >
+   500 words overview on company {input}
+  agent: company_overview_writer

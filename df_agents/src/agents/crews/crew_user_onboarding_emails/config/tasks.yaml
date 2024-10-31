@@ -1,0 +1,6 @@
+user_onboarding_emails_creation_task:
+  description: >
+    Write a series of 3 onboarding emails based on the following input: {input}
+  expected_output: >
+   3 separate emails, each with a unique message. Markdown format.
+  agent: onboarding_email_writer

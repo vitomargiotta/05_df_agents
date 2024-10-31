@@ -4,40 +4,37 @@ import sys
 
 from pydantic import BaseModel
 
-class WelcomeMessage(BaseModel):
+class OnboardingEmailsOverview(BaseModel):
     overview: str
 
-# Uncomment the following line to use an example of a custom tool
-# from agents.tools.custom_tool import MyCustomTool
-
-# Check our tools documentations for more information on how to use them
-# from crewai_tools import SerperDevTool
 
 @CrewBase
-class WelcomerCrew():
-	"""Welcomer crew"""
+class UserOnboardingEmailsCrew():
+	"""UserOnboardingEmailsCrew crew"""
 
 	agents_config = "config/agents.yaml"
 	tasks_config = "config/tasks.yaml"
 
 	@agent
-	def welcomer_agent(self) -> Agent:
+	def onboarding_email_writer(self) -> Agent:
 		return Agent(
-			config=self.agents_config['welcomer_agent'],
+			config=self.agents_config['onboarding_email_writer'],
 			# tools=[MyCustomTool()], # Example of custom tool, loaded on the beginning of file
 			verbose=True
 		)
+     
+    # AGGIUNERE agent che legge un file md (checklist)
 
 	@task
-	def welcome_message_task(self) -> Task:
+	def user_onboarding_emails_creation_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['welcome_message_task'],
-            output_pydantic=WelcomeMessage,
+			config=self.tasks_config['user_onboarding_emails_creation_task'],
+            output_pydantic=OnboardingEmailsOverview,
 		)
 
 	@crew
 	def crew(self) -> Crew:
-		"""Creates the WelcomerCrew crew"""
+		"""Creates the UserOnboardingEmailsCrew"""
 		return Crew(
 			agents=self.agents, # Automatically created by the @agent decorator
 			tasks=self.tasks, # Automatically created by the @task decorator
@@ -46,44 +43,40 @@ class WelcomerCrew():
 			# process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
 		)
 	
-# Helper functions for CompetitorsResearchCrew
+# Helper functions for UserOnboardingEmailsCrew
 
-def runCompetitorsResearchCrew(user_input):
+def runUserOnboardingEmailsCrew(input):
     """
-    Run the Competitor Research crew.
+    Run the UserOnboardingEmailsCrew.
     """
-    # inputs = {
-    #     'topic': company
-    # }
-    print(f"********** Starting to write a welcome message")
-    result = WelcomerCrew().crew().kickoff(user_input)
+    result = UserOnboardingEmailsCrew().crew().kickoff(input)
     return result
 
 
-def trainCompetitorsResearchCrew():
+def trainUserOnboardingEmailsCrew():
     """
-    Train the Competitor Research crew for a given number of iterations.
+    Train the UserOnboardingEmailsCrew for a given number of iterations.
     """
     inputs = {
         "topic": "Competitor AI Analysis"
     }
     try:
-        WelcomerCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
+        UserOnboardingEmailsCrew().crew().train(n_iterations=int(sys.argv[1]), filename=sys.argv[2], inputs=inputs)
     except Exception as e:
         raise Exception(f"An error occurred while training the Competitor Research crew: {e}")
 
 
-def replayCompetitorsResearchCrew():
+def replayUserOnboardingEmailsCrew():
     """
     Replay the Competitor Research crew execution from a specific task.
     """
     try:
-        WelcomerCrew().crew().replay(task_id=sys.argv[1])
+        UserOnboardingEmailsCrew().crew().replay(task_id=sys.argv[1])
     except Exception as e:
         raise Exception(f"An error occurred while replaying the Competitor Research crew: {e}")
 
 
-def testCompetitorsResearchCrew():
+def testUserOnboardingEmailsCrew():
     """
     Test the Competitor Research crew execution and return the results.
     """
@@ -91,6 +84,6 @@ def testCompetitorsResearchCrew():
         "topic": "Competitor AI Analysis"
     }
     try:
-        WelcomerCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
+        UserOnboardingEmailsCrew().crew().test(n_iterations=int(sys.argv[1]), openai_model_name=sys.argv[2], inputs=inputs)
     except Exception as e:
         raise Exception(f"An error occurred while testing the Competitor Research crew: {e}")

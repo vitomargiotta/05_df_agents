@@ -3,8 +3,10 @@ import sys
 import os
 import json
 from agents.crews.crew_company_research.crew_company_research import CompanyResearchCrew
-from agents.crews.crew_competitor_research.crew_competitors_research import CompetitorsResearchCrew
+# from agents.crews.crew_competitor_research.crew_competitors_research import CompetitorsResearchCrew
 from agents.flow_test2 import LeadScoreFlow
+from agents.flow_onboarding_emails import UserOnboardingEmailsFlow
+from agents.flow_competitor_research import CompetitorResearchFlow
 
 # SETUP THE FastAPI SERVER
 
@@ -218,9 +220,10 @@ async def get_report_status_and_result(report_id: str):
             "user_id": report[2],
             "account_id": report[3],
             "status": report[4],
-            "result": report[5],  # Assuming result is JSONB
-            "created_at": report[6],
-            "updated_at": report[7]
+            "user_input": report[5],  # Assuming result is JSONB
+            "result": report[6],  # Assuming result is JSONB
+            "created_at": report[7],
+            "updated_at": report[8]
         }
         return {"report": report_dict}
 
@@ -243,26 +246,38 @@ async def get_report_status_and_result(report_id: str):
 @app.post("/agents/request_report")
 async def request_report(request: ReportRequest, background_tasks: BackgroundTasks):
     try:
-        # Connect to the PostgreSQL database
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
+        # Estrai l'input dell'utente e lo converte in formato JSON serializzabile
+        user_input = request.user_request.get('input')
+        print(f"USER INPUT {user_input}!")
+        json_user_input = {"input": user_input}
+        json_user_input_str = json.dumps(json_user_input)
+
+        # Connetti al database PostgreSQL
+        conn = psycopg2.connect(
+            dbname=DB_NAME, 
+            user=DB_USER, 
+            password=DB_PASSWORD, 
+            host=DB_HOST, 
+            port=DB_PORT
+        )
         cur = conn.cursor()
 
-        # Insert the new job into the reports table (assuming a table structure that includes these fields)
+        # Inserisci il nuovo job nella tabella reports
         cur.execute(
             """
-            INSERT INTO reports (agent_id, user_id, account_id, status, result, created_at, updated_at)
+            INSERT INTO reports (agent_id, user_id, account_id, status, user_input, result, created_at, updated_at)
             VALUES (
                 (SELECT id FROM agents WHERE slug = %s), 
-                %s, %s, %s, %s, NOW(), NOW()
+                %s, %s, %s, %s, %s, NOW(), NOW()
             ) RETURNING id;
             """,
-            (request.agent_slug, request.user_id, request.account_id, STATUS_IN_PROGRESS, None)
+            (request.agent_slug, request.user_id, request.account_id, STATUS_IN_PROGRESS, json_user_input_str, None)
         )
 
-        # Fetch the report_id of the newly inserted job (this will be the job ID)
+        # Ottieni il report_id del nuovo record inserito
         report_id = cur.fetchone()[0]
 
-        # Commit the transaction and close the connection
+        # Conferma la transazione e chiudi la connessione
         conn.commit()
         cur.close()
         conn.close()
@@ -270,17 +285,15 @@ async def request_report(request: ReportRequest, background_tasks: BackgroundTas
         # Select the appropriate crew based on the agent_slug
         if request.agent_slug == "company-research-agent":
             crew_instance = CompanyResearchCrew()
+        elif request.agent_slug == "user-onboarding-agent":
+            crew_instance = UserOnboardingEmailsFlow(report_id)
         elif request.agent_slug == "competitors-research-agent":
-            # crew_instance = CompetitorsResearchCrew()
-            # crew_instance = CompetitorResearchFlow()
-            crew_instance = LeadScoreFlow(report_id)
+            crew_instance = CompetitorResearchFlow(report_id)
         else:
             raise HTTPException(status_code=400, detail="Invalid agent slug")
 
         # Message to be returned
         message = f"Report job started!"
-        user_input = request.user_request.get('input')
-        print(f"USER INPUT {user_input}!")
 
         background_tasks.add_task(run_analysis, user_input, report_id, crew_instance)
         return {"message": message, "report_id": report_id}

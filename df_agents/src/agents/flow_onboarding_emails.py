@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 import os
 import json
@@ -7,13 +8,10 @@ import psycopg2
 from psycopg2 import sql
 from dotenv import load_dotenv
 
-from agents.crews.crew_welcomer.crew_welcomer import WelcomerCrew
+from agents.crews.crew_user_onboarding_emails.crew_user_onboarding_emails import UserOnboardingEmailsCrew
 
 from crewai.flow.flow import Flow, listen, or_, router, start
 from pydantic import BaseModel
-
-class WelcomeMessageState(BaseModel):
-    overview: str = ""
 
 
 # DEFINE UTILITY FUNCTIONS
@@ -85,84 +83,89 @@ def update_job_status(job_id, status, result=None):
         conn.close()
 
 
+# DEFINE SCHEMA
+
+class UserOnboardingEmailsState(BaseModel):
+    overview: str = ""
+
+
 # LOGIC FOR THE ACTUAL FLOW
 
-class LeadScoreFlow(Flow[WelcomeMessageState]):
+class UserOnboardingEmailsFlow(Flow[UserOnboardingEmailsState]):
     def __init__(self, job_id):
         super().__init__()
         self.job_id = job_id
+        self.job_details = None
 
-    initial_state = WelcomeMessageState
+    initial_state = UserOnboardingEmailsState
 
     @start()
     async def load_job_document(self):
         print("Loading job document...")
         
-        job_details = fetch_job_details(self.job_id)
+        self.job_details = fetch_job_details(self.job_id)
         
-        if job_details:
-            print("&&&&&&&&&&&&&")
-            print(f"Job Document for JOB ID {self.job_id}:")
-            print(job_details)
-            print("&&&&&&&&&&&&&")
+        if self.job_details:
+            print(f"Retrieving content for job_id: {self.job_id}:")
+            print(self.job_details)
         else:
-            print(f"Errore: Impossibile recuperare i dettagli per JOB ID {self.job_id}")
+            print(f"Error: impossible to retrive content from job_id: {self.job_id}")
+
+    
+    # BASED ON ACCOUNT ID, GET DETAILS ON ACCOUNT. ESLSE ACCEPT JSON FROM METABASE.
+    # CREATE EMAIL BODY
 
     @listen("load_job_document")
-    async def step2(self):
-        print(f"BBBBBBBBBB")
-
-    @listen("step2")
-    async def step3(self):
-        print("About to start the crew")
-        print(f"################# Using Job ID: {self.job_id}")
+    async def call_user_onboarding_emails_crew(self):
+        print("START EXECUTING: USER ONBOARDING EMAILS CREW")
 
         job_id = self.job_id
+        user_input = self.job_details[5] if self.job_details else None
+        print("User input:")
+        print(user_input)
 
-        async def score_single_candidate(job_id):
+        async def generate_user_onboarding_emails_single_user(user_input):
             conn = None
             try:
                 result = await (
-                    WelcomerCrew()
+                    UserOnboardingEmailsCrew()
                     .crew()
-                    .kickoff_async(
-                        # inputs={
-                        #     "something": "else",
-                        # }
-                    )
+                    .kickoff_async(user_input)
                 )
-                # print("RESULT BELOW")
-                # print(result)
+                print("RESULT BELOW")
+                print(result)
                 # print("PYDANTIC RESULT BELOW")
                 
-                result_json = result.pydantic.dict() if hasattr(result.pydantic, 'dict') else {"overview": result.pydantic.overview}
-
+                result_json = result.pydantic.dict() if hasattr(result.pydantic, 'dict') else {"overview": result.pydantic.company_overview}
+                self.state.overview = result.pydantic.overview
+                
                 update_successful = update_job_status(self.job_id, "Completed", result=result_json)
                 if update_successful:
-                    print(f"Job {self.job_id} aggiornato con successo.")
+                    print(f"Job {self.job_id} updated successfully.")
                 else:
-                    print(f"Errore nell'aggiornamento del job {self.job_id}.")
+                    print(f"Error: could not update job_id: {self.job_id}.")
 
             except Exception as e:
                 print(f"An error occurred: {e}")
                 error_result = {"error": str(e)}
                 update_job_status(self.job_id, "Failed", result=error_result)
 
-        asyncio.create_task(score_single_candidate(job_id))
+        asyncio.create_task(generate_user_onboarding_emails_single_user(user_input))
 
-        print("FINISHED EXECUTING CREW")
+        print("FINISHED EXECUTING: USER ONBOARDING EMAILS CREW")
 
 
-    @listen("step3")
+
+    @listen("call_user_onboarding_emails_crew")
     async def step4(self):
-        print(f"CCCCCCCCCC")
+        print(f"DONE WITH ENTIRE FLOW")
 
 
 def kickoff():
     """
     Run the flow.
     """
-    lead_score_flow = LeadScoreFlow()
+    lead_score_flow = UserOnboardingEmailsFlow()
     lead_score_flow.kickoff()
 
 
@@ -170,7 +173,7 @@ def plot():
     """
     Plot the flow.
     """
-    lead_score_flow = LeadScoreFlow()
+    lead_score_flow = UserOnboardingEmailsFlow()
     lead_score_flow.plot()
 
 

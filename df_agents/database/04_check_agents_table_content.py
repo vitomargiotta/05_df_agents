@@ -49,11 +49,11 @@ def check_agents_content():
         cur = connection.cursor()
 
         # Query to fetch the first 2 rows from the agents table
-        cur.execute("SELECT * FROM agents LIMIT 2;")
+        cur.execute("SELECT * FROM agents LIMIT 10;")
         rows = cur.fetchall()
 
         # Print the first 2 rows
-        print("First 2 rows in the 'agents' table:")
+        print("First 10 rows in the 'agents' table:")
         for row in rows:
             print(row)
 

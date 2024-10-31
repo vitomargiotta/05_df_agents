@@ -15,16 +15,27 @@ DB_PORT = 5432
 
 # Define the agent data in a variable, easy to edit
 agent_data = {
-    "id": None,  # Set this to the agent's id if you want to update, else None
-    "name": "Company Research Agent",
-    "description": "This is a new agent for demonstrating how to add agents.",
+    "id": 3,  # Set this to the agent's id if you want to update, else None
+    "name": "Paid User Onboarding Agent",
+    "description": "Writes onboarding emails based on the usecases identified.",
     "icon": "fa-regular fa-landmark-magnifying-glass",
-    "tags": "Sales, Operations",
-    "slug": "company-research-agent",  # Slug must be unique
+    "tags": "Sales, CSM",
+    "slug": "user-onboarding-agent",  # Slug must be unique
     "status": "Active",
-    "visibility": "public",
-    "metadata": {"question": "What data do you need?", "placeholder": "Enter data"}
+    "visibility": "dealfronters_only",
+    "metadata": {"question": "What is the account id?", "placeholder": "Enter account id OR JSON with account info", "additional_info": "To get the JSON about your account, open this metabase report LINK, download and copy the content here."}
 }
+# agent_data = {
+#     "id": None,  # Set this to the agent's id if you want to update, else None
+#     "name": "Company Research Agent",
+#     "description": "This is a new agent for demonstrating how to add agents.",
+#     "icon": "fa-regular fa-landmark-magnifying-glass",
+#     "tags": "Sales, Operations",
+#     "slug": "company-research-agent",  # Slug must be unique
+#     "status": "Active",
+#     "visibility": "public",
+#     "metadata": {"question": "What data do you need?", "placeholder": "Enter data"}
+# }
 
 # Function to attempt a database connection
 def connect_to_db(host):
